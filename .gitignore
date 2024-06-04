@@ -1,6 +1,0 @@
-*readme.txt
-*.ini
-*__init__.py
-*.DS_Store
-*__pycache__/
-*.gitignore
