@@ -1,6 +1,10 @@
 # Cloud Computing Web
 
-雲端服務運算 - 期末報告
+![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white&style=plastic)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54&style=plastic)
+
+![](https://img.shields.io/badge/Streamlit-1.34.0-blue&style=plastic)
+
 
 ## Model
 - TWCC LLM Model : https://tws.twcc.ai/service/ffm-llama3/
