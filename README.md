@@ -1,5 +1,5 @@
 # Cloud Computing Web
-<pre><code>https://52.146.52.174:8501/</code></pre>
+<pre><code>http://52.146.52.174:8501/</code></pre>
 
 ## Environment
 ![Static Badge](https://img.shields.io/badge/1.8.2-FFDC35?style=plastic&label=Poetry&labelColor=black)
