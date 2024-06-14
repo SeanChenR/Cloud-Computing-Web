@@ -1,10 +1,20 @@
 """Wrapper Embedding model APIs."""
 import json
 import requests
+import configparser
 from typing import List
-from pydantic.v1 import BaseModel
+from pydantic import BaseModel
 from langchain_core.embeddings.embeddings import Embeddings
 
+# Read config file Because the information are in config.ini
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+MODEL_NAME = "ffm-embedding"
+API_KEY = "a4d9b574-ee0e-4369-a310-b6a053c06c67"
+API_URL = "https://api-ams.twcc.ai/api/"
+
+# TWCC embedding model
 class CustomEmbeddingModel(BaseModel, Embeddings):
     base_url: str = "http://localhost:12345"
     api_key: str = ""
@@ -17,10 +27,18 @@ class CustomEmbeddingModel(BaseModel, Embeddings):
             "X-API-KEY": self.api_key,
             "X-API-HOST": "afs-inference"
         }
-        response = requests.post(endpoint_url, headers=headers, data=payload)
-        body = response.json()
-        datas = body["data"]
-        embeddings = [data["embedding"] for data in datas]
+        # Sometimes the "post" will be disconnected
+        # so if the data is not converted successfully, "post" it again.
+        while True:
+            try:
+                response = requests.post(endpoint_url, headers=headers, data=payload)
+                body = response.json()
+                datas = body["data"]
+                embeddings = [data["embedding"] for data in datas]
+                break
+            except:
+                print(body)
+                continue
 
         return embeddings
 
@@ -29,9 +47,7 @@ class CustomEmbeddingModel(BaseModel, Embeddings):
             "model": self.model,
             "inputs": texts
         })
-        emb = self.get_embeddings(payload)
-        emb_list = [[0 if x is None else x for x in sublist] for sublist in emb]
-        return emb_list
+        return self.get_embeddings(payload)
 
 
     def embed_query(self, text: str) -> List[List[float]]:
@@ -39,10 +55,10 @@ class CustomEmbeddingModel(BaseModel, Embeddings):
             "model": self.model,
             "inputs": [text]
         })
-        emb = self.get_embeddings(payload)[0]
-        emb_list = [0 if x is None else x for x in emb]
-        return emb_list
+        emb = self.get_embeddings(payload)
+        return emb[0]
 
+# the function to get embedding
 def get_embeddings_model(API_URL, API_KEY, MODEL_NAME):
     embeddings_model = CustomEmbeddingModel(
         base_url = API_URL,
@@ -51,15 +67,11 @@ def get_embeddings_model(API_URL, API_KEY, MODEL_NAME):
     )
     return embeddings_model
 
+# if you want to test embedding connection, run the code and you can see the result of connection
 if __name__ == "__main__":
-    import configparser
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-
-    API_KEY = config['embedding']['API_KEY']
-    API_URL = config['embedding']['API_URL']
-    MODEL_NAME = config['embedding']['MODEL_NAME']
+    MODEL_NAME = MODEL_NAME
+    API_KEY = API_KEY
+    API_URL = API_URL
     embeddings_model = get_embeddings_model(API_URL, API_KEY, MODEL_NAME)
-    query = "早安你好"
-    embeddings = embeddings_model.embed_query(query)
-    print(embeddings)
+    # print(embeddings_model.embed_query("請問台灣最高的山是？"))
+    print(embeddings_model.embed_documents(["test1", "test2", "test3"]))
