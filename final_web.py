@@ -7,16 +7,18 @@ from datetime import datetime as dt
 from qdrant_client import QdrantClient
 from streamlit_extras.grid import grid
 from streamlit_option_menu import option_menu
-from langchain_community.vectorstores import Qdrant
+from langchain_qdrant import Qdrant
+from langchain.chains import ConversationChain
+from langchain_core.prompts.prompt import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from blob_list import get_blob_list
 from vision import recognizer_azure
-from conversation import conversation
 from translator import translator_azure
 from storage_upload import upload_to_azure_storage
 from TWSC_embedding import get_embeddings_model
+from llm import chat_ffm, memory
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -42,25 +44,39 @@ language = {
 }
 
 def rag(query, rag_result):
-    system_prompt = f"""你是一位樂於助人的AI助手，請務必盡可能回答有幫助的答案。
-                        請僅根據<context>中的內容回答問題。
-                        <context>{rag_result}</context>
-                        No prefix"""
-    contents = [query]
-    completion = conversation(system_prompt, contents)
-    return completion
+    prompt_template = """你是一位樂於助人的小幫手，請皆以繁體中文回答問題，並僅根據<text></text>這個html tag中的參考資料回答問題，不知道就說不知道，不準依照自己的想法回答。
+                            然後請以一個專業人士或相關單位工作人員的角度回答問題，若資料有出處請註明出處。
+                            <text>{context}</text>
+                            問題：{question}"""
+    prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
+    llm = prompt | chat_ffm
+    result = llm.invoke({"context":rag_result, "question":query})
+    return result.content
 
-def chat(query):
-    system_prompt = "You are a helpful assistant. No prefix"
-    contents = [query]
-    completion = conversation(system_prompt, contents)
-    return completion
+def single_chat(query):
+    prompt_template = """你是一位得力AI助手，對任何問題總能回應有幫助的答案。
+                            使用者輸入內容：{question}"""
+    prompt = PromptTemplate(input_variables=["question"], template=prompt_template)
+    llm = prompt | chat_ffm
+    result = llm.invoke({"question":query})
+    return result.content
+
+def memory_chat(query):
+    conversation_with_summary = ConversationChain(
+        llm=chat_ffm,
+        memory=memory,
+        verbose=True,
+    )
+    
+    ans = conversation_with_summary.predict(input=query)
+    return ans
 
 def summary(query):
-    system_prompt = "I need to summarize the article. No prefix"
-    contents = [query]
-    completion = conversation(system_prompt, contents)
-    return completion
+    prompt_template = "I need to summarize the article. No prefix! The article is as follows: {article}"
+    prompt = PromptTemplate(input_variables=["article"], template=prompt_template)
+    llm = prompt | chat_ffm
+    result = llm.invoke({"article":query})
+    return result.content
 
 def typewriter(text: str, speed: int):
     tokens = text.split()
@@ -373,30 +389,77 @@ NIM為預訓練模型包，內含CUDA軟體，以及文字、語音或畫面等�
 if selected == "Chat Bot":
     st.header(':rainbow[雲端運算服務_第六組_ChatBot]')
 
-    with st.chat_message("assistant"):
-        st.markdown(":orange[您好，我可以在我能力範圍內盡可能幫助您！😎]")
-    # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    selected_bot = option_menu(
+        menu_title=None,
+        options=["Memory", "Single Round"],
+        icons=["memory", "chat-dots-fill"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": background_color},
+            "icon": {"color": "orange", "font-size": "25px"},
+            "nav-link": {
+                "font-size": "25px",
+                "text-align": "left",
+                "margin": "0px",
+                "--hover-color": "#eee",
+            },
+            "nav-link-selected": {"background-color": "#6F00D2"},
+        },
+    )
 
-    # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # React to user input
-    if prompt := st.chat_input("Chat With Llama3 Bot"):
-        # Display user message in chat message container
-        st.chat_message("user").markdown(prompt)
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-
-        response = chat(prompt)
-        # Display assistant response in chat message container
+    if selected_bot == "Memory":
         with st.chat_message("assistant"):
-            st.markdown(response)
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            st.markdown(":orange[您好，我可以在我能力範圍內盡可能幫助您！😎]")
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # Display chat messages from history on app rerun
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # React to user input
+        if prompt := st.chat_input("Chat With Llama3 Bot"):
+            # Display user message in chat message container
+            st.chat_message("user").markdown(prompt)
+            # Add user message to chat history
+            st.session_state.messages.append({"role": "user", "content": prompt})
+
+            response = memory_chat(prompt)
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                st.markdown(response)
+            # Add assistant response to chat history
+            st.session_state.messages.append({"role": "assistant", "content": response})
+
+    if selected_bot == "Single Round":
+        with st.chat_message("assistant"):
+            st.markdown(":orange[您好，我可以在我能力範圍內盡可能幫助您！😎]")
+        # Initialize chat history
+        if "messages_single" not in st.session_state:
+            st.session_state.messages_single = []
+
+        # Display chat messages from history on app rerun
+        for message in st.session_state.messages_single:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # React to user input
+        if prompt := st.chat_input("Chat With Llama3 Bot"):
+            # Display user message in chat message container
+            st.chat_message("user").markdown(prompt)
+            # Add user message to chat history
+            st.session_state.messages_single.append({"role": "user", "content": prompt})
+
+            response = single_chat(prompt)
+            # Display assistant response in chat message container
+            with st.chat_message("assistant"):
+                st.markdown(response)
+            # Add assistant response to chat history
+            st.session_state.messages_single.append({"role": "assistant", "content": response})
 
 if selected == "Image Vision":
     st.header(':rainbow[雲端運算服務_第六組_Image Vision]')
