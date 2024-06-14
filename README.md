@@ -4,6 +4,8 @@
 ## Environment
 ![Static Badge](https://img.shields.io/badge/1.8.2-FFDC35?style=plastic&label=Poetry&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/3.11.7-0E76B6?style=plastic&label=Python&labelColor=black)
+
+## Package
 ![Static Badge](https://img.shields.io/badge/0.2.1-007500?style=plastic&label=langchain&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/0.2.1-FFBD9D?style=plastic&label=langchain-community&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/0.1.0-A100FF?label=langchian-qdrant&labelColor=black)
