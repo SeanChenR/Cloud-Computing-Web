@@ -6,7 +6,7 @@ WORKDIR /app
 COPY final_web.py .
 COPY translator.py .
 COPY vision.py .
-COPY conversation.py .
+COPY llm.py .
 COPY blob_list.py .
 COPY storage_upload.py .
 COPY TWSC_embedding.py .
