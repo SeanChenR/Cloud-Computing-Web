@@ -10,9 +10,9 @@ from langchain_core.embeddings.embeddings import Embeddings
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-MODEL_NAME = "ffm-embedding"
-API_KEY = "a4d9b574-ee0e-4369-a310-b6a053c06c67"
-API_URL = "https://api-ams.twcc.ai/api/"
+API_KEY = config['embedding']['API_KEY']
+API_URL = config['embedding']['API_URL']
+MODEL_NAME = config['embedding']['MODEL_NAME']
 
 # TWCC embedding model
 class CustomEmbeddingModel(BaseModel, Embeddings):
