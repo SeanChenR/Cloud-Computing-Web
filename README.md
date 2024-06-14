@@ -6,6 +6,7 @@
 ![Static Badge](https://img.shields.io/badge/3.11.7-0E76B6?style=plastic&label=Python&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/0.2.1-007500?style=plastic&label=langchain&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/0.2.1-FFBD9D?style=plastic&label=langchain-community&labelColor=black)
+![Static Badge](https://img.shields.io/badge/0.1.0-A100FF?label=langchian-qdrant&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/4.2.0-5CADAD?style=plastic&label=pypdf&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/1.9.1-B1BFE7?style=plastic&label=qdrant-client&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/1.34.0-FF4B4B?style=plastic&label=streamlit&labelColor=black)
@@ -14,6 +15,7 @@
 ![Static Badge](https://img.shields.io/badge/1.0.0.b1-FF0080?style=plastic&label=azure-ai-translation-text&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/0.9.0-FF8000?style=plastic&label=azure-cognitiveservices-vision-computervision&labelColor=black)
 ![Static Badge](https://img.shields.io/badge/12.20.0-9393FF?style=plastic&label=azure-storage-blob&labelColor=black)
+![Static Badge](https://img.shields.io/badge/4.41.2-FFD21D?label=transformers&labelColor=black)
 
 ## Tools
 ![Static Badge](https://img.shields.io/badge/Azure-0062AD?style=for-the-badge&logo=microsoftazure&labelColor=black)
